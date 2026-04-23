@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import builtins
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote, urlencode
 
 from .._poll import poll_project_status
@@ -83,7 +84,7 @@ class Projects:
         ref: str,
         *,
         message: str,
-        attachments: List[dict[str, Any]] | None = None,
+        attachments: builtins.list[dict[str, Any]] | None = None,
         code_edit_only: bool | None = None,
         wait: bool = False,
     ) -> Any:
