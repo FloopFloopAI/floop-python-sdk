@@ -1,5 +1,11 @@
 # floopfloop
 
+[![PyPI version](https://img.shields.io/pypi/v/floopfloop?logo=pypi&logoColor=white)](https://pypi.org/project/floopfloop/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/floopfloop?logo=pypi&logoColor=white)](https://pypi.org/project/floopfloop/)
+[![Python versions](https://img.shields.io/pypi/pyversions/floopfloop?logo=python&logoColor=white)](https://pypi.org/project/floopfloop/)
+[![CI](https://img.shields.io/github/actions/workflow/status/FloopFloopAI/floop-python-sdk/ci.yml?branch=main&logo=github&label=ci)](https://github.com/FloopFloopAI/floop-python-sdk/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/pypi/l/floopfloop)](./LICENSE)
+
 Official Python SDK for the [FloopFloop](https://www.floopfloop.com) API.
 Build a project, refine it, manage secrets and API keys from any Python 3.10+
 codebase.
