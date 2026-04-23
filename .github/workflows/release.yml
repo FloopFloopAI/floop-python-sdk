@@ -1,0 +1,54 @@
+name: Release
+on:
+  push:
+    tags: ["py-v*"]
+
+# PyPI trusted publishing uses OIDC — no token required. Register the
+# publisher on https://pypi.org/manage/project/floopfloop/settings/publishing/
+# (or the pending-publisher page for a new project) before the first release.
+permissions:
+  contents: write
+  id-token: write  # required for PyPI trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/p/floopfloop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install build + runtime tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+          pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      - name: Mypy
+        run: mypy src
+      - name: Pytest
+        run: pytest -q
+      - name: Verify package version matches tag
+        run: |
+          TAG="${GITHUB_REF_NAME#py-v}"
+          PKG=$(python -c "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag $GITHUB_REF_NAME (→ $TAG) does not match pyproject.toml $PKG"
+            exit 1
+          fi
+      - name: Build sdist + wheel
+        run: python -m build --sdist --wheel
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          prerelease: true
