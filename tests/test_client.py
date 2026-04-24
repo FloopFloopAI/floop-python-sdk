@@ -59,6 +59,24 @@ def test_retry_after_on_429(httpx_mock: HTTPXMock, client: FloopClient) -> None:
     assert exc.value.retry_after_ms == 5000
 
 
+def test_retry_after_http_date(httpx_mock: HTTPXMock, client: FloopClient) -> None:
+    """Server is allowed to send an HTTP-date instead of delta-seconds."""
+    from datetime import datetime, timedelta, timezone
+    from email.utils import format_datetime
+
+    future = datetime.now(timezone.utc) + timedelta(seconds=3)
+    httpx_mock.add_response(
+        status_code=429,
+        headers={"retry-after": format_datetime(future, usegmt=True)},
+        json={"error": {"code": "RATE_LIMITED", "message": "slow"}},
+    )
+    with pytest.raises(FloopError) as exc:
+        client._request("GET", "/x")
+    # HTTP-date has second resolution, so allow a wide tolerance.
+    assert exc.value.retry_after_ms is not None
+    assert 1_000 <= exc.value.retry_after_ms <= 4_000
+
+
 def test_network_error_maps_to_floop_error(
     httpx_mock: HTTPXMock, client: FloopClient
 ) -> None:

@@ -218,12 +218,33 @@ def _default_code_for_status(status: int) -> str:
 
 
 def _parse_retry_after(header: str | None) -> int | None:
+    """Parse an RFC 7231 ``Retry-After`` header as milliseconds.
+
+    Accepts both forms:
+      * ``delta-seconds`` (``"5"``, ``"2.5"``)
+      * ``HTTP-date`` (``"Wed, 21 Oct 2026 07:28:00 GMT"``)
+    """
     if header is None:
         return None
     try:
         seconds = float(header)
     except ValueError:
+        pass
+    else:
+        if seconds < 0:
+            return None
+        return round(seconds * 1000)
+
+    # Fall back to HTTP-date. parsedate_to_datetime handles the three formats
+    # RFC 7231 allows (IMF-fixdate, RFC 850, asctime).
+    from datetime import datetime, timezone
+    from email.utils import parsedate_to_datetime
+
+    try:
+        when = parsedate_to_datetime(header)
+    except (TypeError, ValueError):
         return None
-    if seconds < 0:
-        return None
-    return round(seconds * 1000)
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    delta_ms = round((when - datetime.now(timezone.utc)).total_seconds() * 1000)
+    return max(delta_ms, 0)
