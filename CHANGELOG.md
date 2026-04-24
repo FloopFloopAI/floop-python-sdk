@@ -7,6 +7,8 @@ versioning — alpha releases use the `aN` suffix (e.g. `0.1.0a1`).
 
 ## [Unreleased]
 
+## [0.1.0a2] — 2026-04-24
+
 ### Fixed
 - `_parse_retry_after` now handles the RFC 7231 HTTP-date form in addition to
   `delta-seconds`, so `Retry-After: Wed, 21 Oct 2026 07:28:00 GMT` produces a

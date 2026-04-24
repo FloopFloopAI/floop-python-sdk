@@ -3,4 +3,4 @@
 Bumped together with ``pyproject.toml#project.version`` on every release.
 """
 
-CURRENT_VERSION = "0.1.0a1"
+CURRENT_VERSION = "0.1.0a2"
