@@ -79,6 +79,8 @@ except FloopError as err:
 | `floop.usage`       | `summary` |
 | `floop.user`        | `me` |
 
+For longer end-to-end patterns — streaming a build, refining mid-deploy, attachment uploads, key rotation, retry-with-backoff — see the [cookbook](docs/recipes.md).
+
 ## Authentication
 
 Two token shapes are accepted on `api_key`:
