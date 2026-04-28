@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from .resources.projects import Projects
     from .resources.secrets import Secrets
     from .resources.subdomains import Subdomains
+    from .resources.subscriptions import Subscriptions
     from .resources.uploads import Uploads
     from .resources.usage import Usage
     from .resources.user import User
@@ -67,6 +68,7 @@ class FloopClient:
     api_keys: ApiKeys
     library: Library
     subdomains: Subdomains
+    subscriptions: Subscriptions
     uploads: Uploads
     usage: Usage
     user: User
@@ -97,6 +99,7 @@ class FloopClient:
         from .resources.projects import Projects
         from .resources.secrets import Secrets
         from .resources.subdomains import Subdomains
+        from .resources.subscriptions import Subscriptions
         from .resources.uploads import Uploads
         from .resources.usage import Usage
         from .resources.user import User
@@ -106,6 +109,7 @@ class FloopClient:
         self.api_keys = ApiKeys(self)
         self.library = Library(self)
         self.subdomains = Subdomains(self)
+        self.subscriptions = Subscriptions(self)
         self.uploads = Uploads(self)
         self.usage = Usage(self)
         self.user = User(self)
