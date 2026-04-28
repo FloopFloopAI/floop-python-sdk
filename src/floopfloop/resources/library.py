@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import quote, urlencode
 
 if TYPE_CHECKING:
+    from .._async_client import AsyncFloopClient
     from .._client import FloopClient
 
 LibrarySort = Literal["popular", "newest"]
@@ -47,6 +48,48 @@ class Library:
 
     def clone(self, project_id: str, *, subdomain: str) -> dict[str, Any]:
         return self._client._request(
+            "POST",
+            f"/api/v1/library/{quote(project_id, safe='')}/clone",
+            json={"subdomain": subdomain},
+        )
+
+
+class AsyncLibrary:
+    def __init__(self, client: AsyncFloopClient) -> None:
+        self._client = client
+
+    async def list(
+        self,
+        *,
+        bot_type: str | None = None,
+        search: str | None = None,
+        sort: LibrarySort | None = None,
+        page: int | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        params: dict[str, str] = {}
+        if bot_type:
+            params["botType"] = bot_type
+        if search:
+            params["search"] = search
+        if sort:
+            params["sort"] = sort
+        if page:
+            params["page"] = str(page)
+        if limit:
+            params["limit"] = str(limit)
+        path = "/api/v1/library"
+        if params:
+            path = f"{path}?{urlencode(params)}"
+        data = await self._client._request("GET", path)
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict) and "items" in data:
+            return list(data["items"])
+        return []
+
+    async def clone(self, project_id: str, *, subdomain: str) -> dict[str, Any]:
+        return await self._client._request(
             "POST",
             f"/api/v1/library/{quote(project_id, safe='')}/clone",
             json={"subdomain": subdomain},

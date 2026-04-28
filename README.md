@@ -112,6 +112,30 @@ with FloopClient(api_key="...") as floop:
     floop.projects.list()
 ```
 
+## Async
+
+`AsyncFloopClient` mirrors `FloopClient` on top of `httpx.AsyncClient` —
+same arguments, same resource accessors (`projects`, `secrets`,
+`api_keys`, ...), every method is `async def`. Use `async with` to ensure
+the underlying HTTP client is closed:
+
+```python
+import asyncio
+from floopfloop import AsyncFloopClient
+
+async def main():
+    async with AsyncFloopClient(api_key="flp_...") as floop:
+        created = await floop.projects.create(prompt="a cat cafe landing page")
+        live = await floop.projects.wait_for_live(created["project"]["id"])
+        print(live["url"])
+
+        # Streaming uses `async for`:
+        async for ev in floop.projects.stream(created["project"]["id"]):
+            print(ev["status"], ev.get("progress"))
+
+asyncio.run(main())
+```
+
 ## Releasing (maintainers only)
 
 This package publishes to PyPI via

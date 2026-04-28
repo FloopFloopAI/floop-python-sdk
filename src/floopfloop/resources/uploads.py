@@ -10,6 +10,7 @@ import httpx
 from ..errors import FloopError
 
 if TYPE_CHECKING:
+    from .._async_client import AsyncFloopClient
     from .._client import FloopClient
 
 EXT_TO_MIME: dict[str, str] = {
@@ -92,6 +93,88 @@ class Uploads:
 
         try:
             put = self._client._http.put(
+                presign["uploadUrl"],
+                content=content,
+                headers={"Content-Type": mime},
+            )
+        except httpx.HTTPError as err:
+            raise FloopError(
+                code="NETWORK_ERROR",
+                message=f"S3 upload failed ({err})",
+                status=0,
+            ) from err
+
+        if put.status_code >= 400:
+            raise FloopError(
+                code="UNKNOWN",
+                message=f"S3 upload failed ({put.status_code} {put.reason_phrase})",
+                status=put.status_code,
+            )
+
+        return {
+            "key": presign["key"],
+            "fileName": file_name,
+            "fileType": mime,
+            "fileSize": size,
+        }
+
+
+class AsyncUploads:
+    def __init__(self, client: AsyncFloopClient) -> None:
+        self._client = client
+
+    async def create(
+        self,
+        *,
+        file_name: str,
+        content: bytes | None = None,
+        path: str | Path | None = None,
+        file_type: str | None = None,
+    ) -> dict[str, Any]:
+        """Async mirror of :meth:`Uploads.create`.
+
+        File-system reads via :class:`pathlib.Path` are still synchronous —
+        the value of being async here is the network IO (presign POST + S3
+        PUT) cooperating with the event loop, not the disk read. For very
+        large files where blocking on `read_bytes` matters, pass ``content``
+        you've already loaded via ``aiofiles`` or similar.
+        """
+        if (content is None) == (path is None):
+            raise TypeError(
+                "AsyncUploads.create: pass exactly one of `content` or `path`"
+            )
+
+        if content is None:
+            assert path is not None
+            content = Path(path).read_bytes()
+
+        mime = file_type or guess_mime_type(file_name)
+        if mime is None or mime not in EXT_TO_MIME.values():
+            raise FloopError(
+                code="VALIDATION_ERROR",
+                message=(
+                    f"Unsupported file type for {file_name}. "
+                    "Allowed: png, jpg, gif, svg, webp, ico, pdf, txt, csv, doc, docx."
+                ),
+                status=0,
+            )
+
+        size = len(content)
+        if size > MAX_BYTES:
+            raise FloopError(
+                code="VALIDATION_ERROR",
+                message=f"{file_name} is {size // (1024 * 1024)} MB — the upload limit is 5 MB.",
+                status=0,
+            )
+
+        presign: dict[str, Any] = await self._client._request(
+            "POST",
+            "/api/v1/uploads",
+            json={"fileName": file_name, "fileType": mime, "fileSize": size},
+        )
+
+        try:
+            put = await self._client._http.put(
                 presign["uploadUrl"],
                 content=content,
                 headers={"Content-Type": mime},

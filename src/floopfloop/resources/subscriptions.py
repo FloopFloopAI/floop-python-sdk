@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .._async_client import AsyncFloopClient
     from .._client import FloopClient
 
 
@@ -33,3 +34,12 @@ class Subscriptions:
         backend adds fields.
         """
         return self._client._request("GET", "/api/v1/subscriptions/current")
+
+
+class AsyncSubscriptions:
+    def __init__(self, client: AsyncFloopClient) -> None:
+        self._client = client
+
+    async def current(self) -> dict[str, Any]:
+        """Async mirror of :meth:`Subscriptions.current`."""
+        return await self._client._request("GET", "/api/v1/subscriptions/current")
