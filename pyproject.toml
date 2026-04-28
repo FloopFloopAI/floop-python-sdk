@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "floopfloop"
-version = "0.1.0a3"
+version = "0.1.0a4"
 description = "Official Python SDK for the FloopFloop API"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,6 +35,7 @@ Changelog = "https://github.com/FloopFloopAI/floop-python-sdk/blob/main/CHANGELO
 dev = [
   "pytest>=8",
   "pytest-httpx>=0.30",
+  "pytest-asyncio>=0.24",
   "ruff>=0.6",
   "mypy>=1.11",
 ]
@@ -65,3 +66,9 @@ warn_redundant_casts = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
+# pytest-asyncio's "auto" mode applies @pytest.mark.asyncio implicitly to
+# every `async def test_*` — but we mark explicitly to keep the
+# signal-to-noise ratio sane and to make sync vs async tests scannable
+# at a glance. "strict" forces the marker to be present (default in
+# newer versions, but pin explicitly).
+asyncio_mode = "strict"
