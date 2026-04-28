@@ -155,6 +155,53 @@ def test_usage_summary(httpx_mock: HTTPXMock, client: FloopClient) -> None:
     assert client.usage.summary()["plan"]["name"] == "free"
 
 
+def test_subscriptions_current_populated(httpx_mock: HTTPXMock, client: FloopClient) -> None:
+    httpx_mock.add_response(
+        url="https://www.floopfloop.com/api/v1/subscriptions/current",
+        json={
+            "data": {
+                "subscription": {
+                    "status": "active",
+                    "billingPeriod": "monthly",
+                    "currentPeriodStart": "2026-04-01T00:00:00Z",
+                    "currentPeriodEnd": "2026-05-01T00:00:00Z",
+                    "canceledAt": None,
+                    "planName": "pro",
+                    "planDisplayName": "Pro",
+                    "priceMonthly": 29,
+                    "priceAnnual": 290,
+                    "monthlyCredits": 500,
+                    "maxProjects": 50,
+                    "maxStorageMb": 5000,
+                    "maxBandwidthMb": 50000,
+                    "creditRolloverMonths": 1,
+                    "features": {"teams": True},
+                },
+                "credits": {
+                    "current": 423,
+                    "rolledOver": 50,
+                    "total": 473,
+                    "rolloverExpiresAt": "2026-05-01T00:00:00Z",
+                    "lifetimeUsed": 1234,
+                },
+            }
+        },
+    )
+    out = client.subscriptions.current()
+    assert out["subscription"]["planName"] == "pro"
+    assert out["credits"]["total"] == 473
+
+
+def test_subscriptions_current_both_null(httpx_mock: HTTPXMock, client: FloopClient) -> None:
+    httpx_mock.add_response(
+        url="https://www.floopfloop.com/api/v1/subscriptions/current",
+        json={"data": {"subscription": None, "credits": None}},
+    )
+    out = client.subscriptions.current()
+    assert out["subscription"] is None
+    assert out["credits"] is None
+
+
 def test_user_me(httpx_mock: HTTPXMock, client: FloopClient) -> None:
     httpx_mock.add_response(
         url="https://www.floopfloop.com/api/v1/user/me",
@@ -197,6 +244,7 @@ def test_client_wires_all_resources(client: FloopClient) -> None:
         "api_keys",
         "library",
         "subdomains",
+        "subscriptions",
         "uploads",
         "usage",
         "user",

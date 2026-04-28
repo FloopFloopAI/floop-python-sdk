@@ -7,6 +7,30 @@ versioning — alpha releases use the `aN` suffix (e.g. `0.1.0a1`).
 
 ## [Unreleased]
 
+## [0.1.0a3] — 2026-04-28
+
+### Added
+- **`floop.subscriptions.current()`** — new resource accessor that returns the
+  authenticated user's plan + credit-balance snapshot. Wraps
+  `GET /api/v1/subscriptions/current`. Distinct from `usage.summary()` —
+  `usage.summary()` covers current-period consumption (credits remaining,
+  builds used, storage), while `subscriptions.current()` returns the plan
+  tier itself (price, billing period, cancel state). They overlap on
+  `monthlyCredits` and `maxProjects` but serve different audiences ("am I
+  about to hit my limits?" vs "what plan is this user on, and when does it
+  renew?").
+- Both `subscription` and `credits` keys on the response can be `None`
+  independently — a user may exist without a subscription (mid-signup,
+  cancelled with no grace credits).
+
+### Tests
+- Two new cases in `tests/test_resources.py` covering the populated-response
+  shape and the both-null edge case.
+
+### Notes
+- Mirrors [`@floopfloop/sdk` PR #6](https://github.com/FloopFloopAI/floop-node-sdk/pull/6)
+  (Node `0.1.0-alpha.3`) — cross-SDK parity drop.
+
 ## [0.1.0a2] — 2026-04-24
 
 ### Fixed
