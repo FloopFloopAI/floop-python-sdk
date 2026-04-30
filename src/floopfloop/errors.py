@@ -22,6 +22,8 @@ KnownFloopErrorCode = Literal[
     "TIMEOUT",
     "BUILD_FAILED",
     "BUILD_CANCELLED",
+    "INSUFFICIENT_CREDITS",
+    "PAYMENT_FAILED",
     "UNKNOWN",
 ]
 
